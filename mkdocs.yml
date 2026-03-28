@@ -1,0 +1,16 @@
+site_name: pyzahidal Docs
+theme:
+  name: material
+nav:
+  - Start Here: index.md
+  - Quickstart: quickstart.md
+  - Core Concepts: core-concepts.md
+  - Recipes: recipes.md
+  - Publishing: publishing.md
+  - Examples: generated/examples.md
+  - Reference:
+      - Components: generated/components.md
+      - Templates: generated/templates.md
+      - Themes: generated/themes.md
+extra_css:
+  - stylesheets/docs.css

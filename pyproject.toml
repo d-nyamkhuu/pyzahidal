@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyzahidal"
+version = "0.1.2"
+description = "Composable HTML email components and templates with Jinja-friendly output."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Nyamkhuu Demberelsuren"}
+]
+keywords = ["email", "html-email", "jinja", "templates", "components"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Communications :: Email",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/d-nyamkhuu/pyzahidal"
+Documentation = "https://d-nyamkhuu.github.io/pyzahidal/"
+Repository = "https://github.com/d-nyamkhuu/pyzahidal"
+Issues = "https://github.com/d-nyamkhuu/pyzahidal/issues"
+Changelog = "https://github.com/d-nyamkhuu/pyzahidal/releases"
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2",
+  "pytest>=8.0",
+  "twine>=5.1",
+]
+docs = [
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+  "pillow>=10.4",
+  "playwright>=1.54",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
