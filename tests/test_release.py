@@ -6,11 +6,11 @@ from scripts.check_release import project_version, validate_tag
 
 
 def test_project_version_matches_current_pyproject() -> None:
-    assert project_version() == "0.1.2"
+    assert project_version() == "0.1.3"
 
 
 def test_validate_tag_returns_stripped_version() -> None:
-    assert validate_tag("v0.1.2") == "0.1.2"
+    assert validate_tag("v0.1.3") == "0.1.3"
 
 
 def test_validate_tag_rejects_invalid_tags() -> None:
