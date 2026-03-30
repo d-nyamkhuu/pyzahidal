@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+from contextvars import ContextVar
 from copy import deepcopy
 
 
@@ -245,6 +247,17 @@ THEMES: dict[str, dict[str, object]] = {
     },
 }
 
+_CURRENT_THEME: ContextVar[dict[str, object] | None] = ContextVar("_CURRENT_THEME", default=None)
+
+
+@contextmanager
+def use_theme(theme: dict[str, object]):
+    token = _CURRENT_THEME.set(deepcopy(theme))
+    try:
+        yield
+    finally:
+        _CURRENT_THEME.reset(token)
+
 
 def build_theme(base: str | dict[str, object] | None = None, overrides: dict[str, object] | None = None) -> dict[str, object]:
     if isinstance(base, str):
@@ -252,7 +265,8 @@ def build_theme(base: str | dict[str, object] | None = None, overrides: dict[str
     elif isinstance(base, dict):
         theme = deepcopy({**DEFAULT_THEME, **base})
     else:
-        theme = deepcopy(DEFAULT_THEME)
+        inherited = _CURRENT_THEME.get()
+        theme = deepcopy(inherited if inherited is not None else DEFAULT_THEME)
     if overrides:
         theme.update(overrides)
     return theme

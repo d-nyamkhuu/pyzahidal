@@ -58,6 +58,17 @@ def _theme_kwargs(kwargs: dict[str, object]) -> dict[str, object]:
     return {"theme": kwargs.get("theme"), "theme_overrides": kwargs.get("theme_overrides")}
 
 
+def _resolved_theme(theme_overrides: dict[str, object] | None) -> dict[str, object]:
+    return build_theme(None, theme_overrides)
+
+
+def _deferred_theme_kwargs(kwargs: dict[str, object]) -> dict[str, object]:
+    deferred = dict(kwargs)
+    deferred.pop("theme", None)
+    deferred.pop("theme_overrides", None)
+    return deferred
+
+
 def _render_button_group(actions: Sequence[ActionSpec] | None, themed: dict[str, object]) -> object:
     if not actions:
         return ""
@@ -114,6 +125,19 @@ class Header(Container):
         meta_label: str | None = "Email kit",
         **kwargs: object,
     ) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Header(
+                brand,
+                nav_items,
+                logo_src=logo_src,
+                logo_alt=logo_alt,
+                tagline=tagline,
+                meta_label=meta_label,
+                theme=_resolved_theme(kwargs.get("theme_overrides")),
+                **deferred_kwargs,
+            )
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         themed = _theme_kwargs(kwargs)
         meta_children: list[object] = []
@@ -164,6 +188,21 @@ class Footer(Container):
         disclaimer: str | None = "You are receiving this email because you opted in to product updates.",
         **kwargs: object,
     ) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Footer(
+                company,
+                social_items,
+                top_image_src=top_image_src,
+                top_image_alt=top_image_alt,
+                description=description,
+                menu_items=menu_items,
+                legal_links=legal_links,
+                disclaimer=disclaimer,
+                theme=_resolved_theme(kwargs.get("theme_overrides")),
+                **deferred_kwargs,
+            )
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         themed = _theme_kwargs(kwargs)
         closing_children: list[object] = []
@@ -210,6 +249,20 @@ class Hero(Container):
         meta_items: Sequence[MetricSpec] | None = None,
         **kwargs: object,
     ) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Hero(
+                title=title,
+                body=body,
+                primary_action=primary_action,
+                eyebrow=eyebrow,
+                secondary_action=secondary_action,
+                media=media,
+                meta_items=meta_items,
+                theme=_resolved_theme(kwargs.get("theme_overrides")),
+                **deferred_kwargs,
+            )
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         themed = _theme_kwargs(kwargs)
         left = [
@@ -317,6 +370,10 @@ class Hero(Container):
 
 class BentoGrid(Container):
     def __init__(self, items: Sequence[BentoItemSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: BentoGrid(items, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         cards = []
@@ -341,6 +398,10 @@ class BentoGrid(Container):
 
 class CallToAction(Container):
     def __init__(self, title: str, body: str, actions: Sequence[ActionSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: CallToAction(title, body, actions, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         content = raw(
@@ -410,6 +471,10 @@ class Feature(Renderable):
 
 class Coupon(Container):
     def __init__(self, code: str, detail: str, **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Coupon(code, detail, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         content = raw(
@@ -435,6 +500,10 @@ class Coupon(Container):
 
 class Stats(Container):
     def __init__(self, items: Sequence[MetricSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Stats(items, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         normalized_items = require_spec_sequence(items, MetricSpec, "items")
         metrics = [
@@ -459,6 +528,10 @@ class Stats(Container):
 
 class LogoCloud(Container):
     def __init__(self, logos: Sequence[LogoSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: LogoCloud(logos, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         super().__init__(
             LogoStrip(logos, boxed=True, **_theme_kwargs(kwargs)),
@@ -469,6 +542,10 @@ class LogoCloud(Container):
 
 class BlogList(Container):
     def __init__(self, posts: Sequence[BlogPostSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: BlogList(posts, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         themed = _theme_kwargs(kwargs)
         items = []
@@ -497,6 +574,10 @@ class BlogList(Container):
 
 class FAQ(Container):
     def __init__(self, items: Sequence[FaqItemSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: FAQ(items, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         children = []
@@ -525,6 +606,10 @@ class FAQ(Container):
 
 class Team(Container):
     def __init__(self, members: Sequence[TeamMemberSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Team(members, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         themed = _theme_kwargs(kwargs)
         cards = []
@@ -573,6 +658,17 @@ class WelcomeHero(Container):
         members: Sequence[AvatarSpec] | None = None,
         **kwargs: object,
     ) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: WelcomeHero(
+                title=title,
+                body=body,
+                action=action,
+                members=members,
+                theme=_resolved_theme(kwargs.get("theme_overrides")),
+                **deferred_kwargs,
+            )
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         action = require_spec(action, ActionSpec, "action")
@@ -610,6 +706,10 @@ class WelcomeHero(Container):
 
 class Testimonials(Container):
     def __init__(self, items: Sequence[TestimonialSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Testimonials(items, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         blocks = []
@@ -637,6 +737,10 @@ class Testimonials(Container):
 
 class Timeline(Container):
     def __init__(self, steps: Sequence[TimelineStepSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Timeline(steps, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         normalized_steps = require_spec_sequence(steps, TimelineStepSpec, "steps")
@@ -734,6 +838,10 @@ class Timeline(Container):
 
 class Pricing(Container):
     def __init__(self, plans: Sequence[PricingPlanSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Pricing(plans, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         content = []
@@ -774,6 +882,10 @@ class Pricing(Container):
 
 class ProductList(Container):
     def __init__(self, products: Sequence[ProductSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: ProductList(products, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         items = []
@@ -828,6 +940,21 @@ class ProductDetail(Container):
         variant: str = "primary",
         **kwargs: object,
     ) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: ProductDetail(
+                name,
+                price,
+                description,
+                image_src,
+                action=action,
+                href=href,
+                label=label,
+                variant=variant,
+                theme=_resolved_theme(kwargs.get("theme_overrides")),
+                **deferred_kwargs,
+            )
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         media = Image(image_src, alt=name, framed=True, **themed) if image_src else ""
@@ -857,6 +984,10 @@ class ProductDetail(Container):
 
 class ProductFeatures(Container):
     def __init__(self, features: Sequence[str], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: ProductFeatures(features, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         items = []
@@ -872,6 +1003,10 @@ class ProductFeatures(Container):
 
 class CategoryPreview(Container):
     def __init__(self, title: str, categories: Sequence[tuple[str, str]], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: CategoryPreview(title, categories, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         items = [Heading(title, level="subsection", **themed), Spacer("10px")]
         for label, href in categories:
@@ -881,6 +1016,10 @@ class CategoryPreview(Container):
 
 class ShoppingCart(Container):
     def __init__(self, items: Sequence[CartItemSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: ShoppingCart(items, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         rows = [(item.name, item.qty, item.price) for item in require_spec_sequence(items, CartItemSpec, "items")]
         themed = _theme_kwargs(kwargs)
         super().__init__(Section(DataTable(headers=["Item", "Qty", "Price"], rows=rows, **themed), **themed), **kwargs)
@@ -888,6 +1027,10 @@ class ShoppingCart(Container):
 
 class Reviews(Container):
     def __init__(self, items: Sequence[ReviewSpec], **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: Reviews(items, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         cards: list[object] = []
@@ -931,6 +1074,10 @@ class Reviews(Container):
 
 class OrderSummary(Container):
     def __init__(self, rows: Sequence[tuple[str, str]], progress: int | None = None, **kwargs: object) -> None:
+        if kwargs.get("theme") is None:
+            deferred_kwargs = _deferred_theme_kwargs(kwargs)
+            self._deferred_factory = lambda: OrderSummary(rows, progress=progress, theme=_resolved_theme(kwargs.get("theme_overrides")), **deferred_kwargs)
+            return
         themed = _theme_kwargs(kwargs)
         theme_map = build_theme(kwargs.get("theme"), kwargs.get("theme_overrides"))
         content: list[object] = [

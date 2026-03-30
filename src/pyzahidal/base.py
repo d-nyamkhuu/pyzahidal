@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterable, Sequence, TypeVar
+from typing import Callable, Iterable, Sequence, TypeVar
 
 from .rendering import attrs_to_html, raw, render_fragment, render_tag
-from .theme import build_theme
+from .theme import build_theme, use_theme
 
 
 class Renderable:
@@ -236,6 +236,20 @@ class Component(Renderable):
         )
 
 
+class DeferredComponent(Component):
+    _deferred_factory: Callable[[], Renderable] | None = None
+
+    def render(self) -> str:
+        if self._deferred_factory is not None:
+            return self._deferred_factory().render()
+        return super().render()
+
+    def render_template(self) -> str:
+        if self._deferred_factory is not None:
+            return self._deferred_factory().render_template()
+        return super().render_template()
+
+
 @dataclass
 class EmailDocument(Renderable):
     sections: Sequence[Renderable | str]
@@ -253,91 +267,92 @@ class EmailDocument(Renderable):
 
     def _render(self, *, template_mode: bool) -> str:
         theme = build_theme(self.theme, self.theme_overrides)
-        section_gap = theme["section_gap"]
-        section_markup = "".join(
-            render_tag(
-                "tr",
+        with use_theme(theme):
+            section_gap = theme["section_gap"]
+            section_markup = "".join(
+                render_tag(
+                    "tr",
+                    children=[
+                        render_tag(
+                            "td",
+                            styles={"padding": f"0 0 {section_gap} 0"},
+                            children=[section],
+                            template_mode=template_mode,
+                        )
+                    ],
+                    template_mode=template_mode,
+                )
+                for section in self.sections
+            )
+            body_table = render_tag(
+                "table",
+                attrs={"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"},
+                styles={
+                    "max-width": theme["container_width"],
+                    "margin": "0 auto",
+                    "width": "100%",
+                },
+                children=[raw(section_markup)],
+                template_mode=template_mode,
+            )
+            frame = render_tag(
+                "table",
+                attrs={"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"},
+                styles={
+                    "max-width": f"calc({theme['container_width']} + 48px)",
+                    "margin": "0 auto",
+                    "width": "100%",
+                },
                 children=[
-                    render_tag(
-                        "td",
-                        styles={"padding": f"0 0 {section_gap} 0"},
-                        children=[section],
-                        template_mode=template_mode,
+                    raw(
+                        render_tag(
+                            "tr",
+                            children=[
+                                render_tag(
+                                    "td",
+                                    styles={
+                                        "padding": "12px",
+                                        "border": f"1px solid {theme['border_color']}",
+                                        "border-radius": theme["radius_lg"],
+                                        "background": theme["hero_accent_background"],
+                                    },
+                                    children=[raw(body_table)],
+                                    template_mode=template_mode,
+                                )
+                            ],
+                            template_mode=template_mode,
+                        )
                     )
                 ],
                 template_mode=template_mode,
             )
-            for section in self.sections
-        )
-        body_table = render_tag(
-            "table",
-            attrs={"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"},
-            styles={
-                "max-width": theme["container_width"],
-                "margin": "0 auto",
-                "width": "100%",
-            },
-            children=[raw(section_markup)],
-            template_mode=template_mode,
-        )
-        frame = render_tag(
-            "table",
-            attrs={"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"},
-            styles={
-                "max-width": f"calc({theme['container_width']} + 48px)",
-                "margin": "0 auto",
-                "width": "100%",
-            },
-            children=[
-                raw(
-                    render_tag(
-                        "tr",
-                        children=[
-                            render_tag(
-                                "td",
-                                styles={
-                                    "padding": "12px",
-                                    "border": f"1px solid {theme['border_color']}",
-                                    "border-radius": theme["radius_lg"],
-                                    "background": theme["hero_accent_background"],
-                                },
-                                children=[raw(body_table)],
-                                template_mode=template_mode,
-                            )
-                        ],
-                        template_mode=template_mode,
-                    )
-                )
-            ],
-            template_mode=template_mode,
-        )
-        preview = render_tag(
-            "div",
-            styles={
-                "display": "none",
-                "overflow": "hidden",
-                "line-height": "1px",
-                "opacity": "0",
-                "max-height": "0",
-                "max-width": "0",
-            },
-            children=[self.preview_text],
-            template_mode=template_mode,
-        )
-        body = render_tag(
-            "body",
-            styles={
-                "margin": "0",
-                "padding": "28px 12px 40px",
-                "background": theme["body_background"],
-                "font-family": theme["font_family"],
-                "font-size": theme["base_font_size"],
-                "line-height": theme["line_height"],
-                "color": theme["text_color"],
-            },
-            children=[preview, frame],
-            template_mode=template_mode,
-        )
+            preview = render_tag(
+                "div",
+                styles={
+                    "display": "none",
+                    "overflow": "hidden",
+                    "line-height": "1px",
+                    "opacity": "0",
+                    "max-height": "0",
+                    "max-width": "0",
+                },
+                children=[self.preview_text],
+                template_mode=template_mode,
+            )
+            body = render_tag(
+                "body",
+                styles={
+                    "margin": "0",
+                    "padding": "28px 12px 40px",
+                    "background": theme["body_background"],
+                    "font-family": theme["font_family"],
+                    "font-size": theme["base_font_size"],
+                    "line-height": theme["line_height"],
+                    "color": theme["text_color"],
+                },
+                children=[preview, frame],
+                template_mode=template_mode,
+            )
         head = (
             '<head><meta charset="utf-8"/>'
             '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>'

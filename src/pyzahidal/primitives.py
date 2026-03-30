@@ -7,6 +7,7 @@ from .base import (
     AvatarSpec,
     Component,
     DataColumnSpec,
+    DeferredComponent,
     ImageSpec,
     LogoSpec,
     MenuItemSpec,
@@ -41,7 +42,18 @@ def _coerce_tabular_rows(rows: object) -> list[Sequence[object] | Mapping[str, o
     return list(rows)
 
 
-class Surface(Component):
+def _resolved_theme(theme_overrides: dict[str, object] | None) -> dict[str, object]:
+    return build_theme(None, theme_overrides)
+
+
+def _deferred_kwargs(kwargs: dict[str, object], theme_overrides: dict[str, object] | None) -> dict[str, object]:
+    deferred = dict(kwargs)
+    deferred.pop("theme", None)
+    deferred.pop("theme_overrides", None)
+    return deferred
+
+
+class Surface(DeferredComponent):
     tag = "table"
     default_styles = {"width": "100%"}
 
@@ -61,6 +73,23 @@ class Surface(Component):
         background_color: str | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Surface(
+                *children,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                tone=tone,
+                padding=padding,
+                radius=radius,
+                border=border,
+                shadow=shadow,
+                background_image=background_image,
+                background_size=background_size,
+                background_position=background_position,
+                background_color=background_color,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         kwargs.setdefault("attrs", {"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"})
         styles = kwargs.pop("styles", {})
@@ -137,7 +166,7 @@ class Container(Surface):
         super().__init__(*children, theme=theme, theme_overrides=theme_overrides, tone=variant, **kwargs)
 
 
-class Section(Component):
+class Section(DeferredComponent):
     tag = "table"
 
     def __init__(
@@ -148,6 +177,15 @@ class Section(Component):
         padding: str | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Section(
+                *children,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                padding=padding,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         kwargs.setdefault("attrs", {"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"})
         styles = kwargs.pop("styles", {})
@@ -166,7 +204,7 @@ class Section(Component):
         super().__init__(raw(cell), styles=merged_styles, **kwargs)
 
 
-class Stack(Component):
+class Stack(DeferredComponent):
     tag = "table"
 
     def __init__(
@@ -179,6 +217,17 @@ class Stack(Component):
         align: str = "left",
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Stack(
+                *children,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                gap=gap,
+                divider=divider,
+                align=align,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         kwargs.setdefault("attrs", {"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"})
         items = _normalize_items(children)
@@ -216,7 +265,7 @@ class Stack(Component):
         super().__init__(raw("".join(rows)), **kwargs)
 
 
-class Inline(Component):
+class Inline(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -229,6 +278,17 @@ class Inline(Component):
         wrap: bool = False,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Inline(
+                *children,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                gap=gap,
+                align=align,
+                wrap=wrap,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         item_gap = _resolve_gap(theme_map, gap, "gap_sm")
@@ -328,7 +388,7 @@ class Spacer(Component):
         super().__init__("", styles={"height": size, "line-height": size, "font-size": size}, **kwargs)
 
 
-class Divider(Component):
+class Divider(DeferredComponent):
     tag = "hr"
 
     def __init__(
@@ -339,6 +399,14 @@ class Divider(Component):
         theme_overrides: dict[str, object] | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Divider(
+                color=color,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         merged_styles = {"border": "0", "border-top": f"1px solid {color or theme_map['divider_color']}", "margin": "0"}
@@ -346,7 +414,7 @@ class Divider(Component):
         super().__init__(styles=merged_styles, **kwargs)
 
 
-class Text(Component):
+class Text(DeferredComponent):
     tag = "p"
 
     def __init__(
@@ -357,6 +425,15 @@ class Text(Component):
         size: str = "body",
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Text(
+                *children,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                size=size,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         align = kwargs.pop("align", None)
@@ -385,7 +462,7 @@ class Text(Component):
         super().__init__(*children, styles=merged_styles, **kwargs)
 
 
-class Heading(Component):
+class Heading(DeferredComponent):
     tag = "h2"
 
     def __init__(
@@ -396,6 +473,15 @@ class Heading(Component):
         level: str = "section",
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Heading(
+                *children,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                level=level,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         align = kwargs.pop("align", None)
@@ -418,7 +504,7 @@ class Heading(Component):
         super().__init__(*children, styles=merged_styles, **kwargs)
 
 
-class Image(Component):
+class Image(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -435,6 +521,20 @@ class Image(Component):
         block: bool = True,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Image(
+                src,
+                alt=alt,
+                width=width,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                framed=framed,
+                href=href,
+                caption=caption,
+                block=block,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         merged_styles = {
@@ -466,7 +566,7 @@ class Image(Component):
         super().__init__(content, **kwargs)
 
 
-class Button(Component):
+class Button(DeferredComponent):
     tag = "a"
 
     def __init__(
@@ -484,6 +584,21 @@ class Button(Component):
         radius: str | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Button(
+                label,
+                href=href,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                variant=variant,
+                icon_src=icon_src,
+                icon_alt=icon_alt,
+                icon_side=icon_side,
+                align=align,
+                radius=radius,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         variant_styles = {
@@ -526,7 +641,7 @@ class Button(Component):
         super().__init__(*children, attrs={"href": href}, styles=merged_styles, **kwargs)
 
 
-class Link(Component):
+class Link(DeferredComponent):
     tag = "a"
 
     def __init__(
@@ -540,6 +655,17 @@ class Link(Component):
         underline: bool = False,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Link(
+                label,
+                href=href,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                tone=tone,
+                underline=underline,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         colors = {
@@ -557,7 +683,7 @@ class Link(Component):
         super().__init__(label, attrs={"href": href}, styles=merged_styles, **kwargs)
 
 
-class Pill(Component):
+class Pill(DeferredComponent):
     tag = "span"
 
     def __init__(
@@ -569,6 +695,15 @@ class Pill(Component):
         tone: str = "default",
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Pill(
+                label,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                tone=tone,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         palettes = {
@@ -647,7 +782,7 @@ class AvatarGroup(Component):
         super().__init__(*[raw(child) for child in children], styles=merged_styles, **kwargs)
 
 
-class Alert(Component):
+class Alert(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -658,6 +793,15 @@ class Alert(Component):
         theme_overrides: dict[str, object] | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Alert(
+                *children,
+                tone=tone,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         palette = {
             "info": theme_map["alert_info_background"],
@@ -680,7 +824,7 @@ class Nav(Component):
     tag = "div"
 
 
-class Menu(Component):
+class Menu(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -693,6 +837,17 @@ class Menu(Component):
         gap: str = "14px",
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            deferred_items = list(items)
+            self._deferred_factory = lambda: Menu(
+                deferred_items,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                orientation=orientation,
+                gap=gap,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         themed = {"theme": theme, "theme_overrides": theme_overrides}
         links = []
         for item in require_spec_sequence(list(items), MenuItemSpec, "items"):
@@ -704,7 +859,7 @@ class Menu(Component):
         super().__init__(markup, **kwargs)
 
 
-class IconLink(Component):
+class IconLink(DeferredComponent):
     tag = "a"
 
     def __init__(
@@ -721,6 +876,20 @@ class IconLink(Component):
         background: str | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: IconLink(
+                href,
+                icon_src,
+                alt=alt,
+                label=label,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                shape=shape,
+                size=size,
+                background=background,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         styles = kwargs.pop("styles", {})
         radius = theme_map["radius_pill"] if shape == "circle" else theme_map["radius_sm"]
@@ -769,7 +938,7 @@ class IconLink(Component):
         super().__init__(*children, attrs={"href": href}, styles=merged_styles, **kwargs)
 
 
-class ProgressBar(Component):
+class ProgressBar(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -781,6 +950,15 @@ class ProgressBar(Component):
         theme_overrides: dict[str, object] | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: ProgressBar(
+                value,
+                max_value=max_value,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         percent = 0 if max_value <= 0 else max(0, min(100, int(value / max_value * 100)))
         track = render_tag(
@@ -808,7 +986,7 @@ class ProgressBar(Component):
         super().__init__(raw(track), **kwargs)
 
 
-class DataTable(Component):
+class DataTable(DeferredComponent):
     tag = "table"
 
     def __init__(
@@ -824,6 +1002,19 @@ class DataTable(Component):
         theme_overrides: dict[str, object] | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: DataTable(
+                headers=headers,
+                rows=rows,
+                columns=columns,
+                compact=compact,
+                striped=striped,
+                frame=frame,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         kwargs.setdefault("attrs", {"role": "presentation", "cellpadding": "0", "cellspacing": "0", "width": "100%"})
         styles = kwargs.pop("styles", {})
@@ -911,7 +1102,7 @@ class DataTable(Component):
         )
 
 
-class SocialLinks(Component):
+class SocialLinks(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -923,6 +1114,16 @@ class SocialLinks(Component):
         mode: str = "text",
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            deferred_items = list(items)
+            self._deferred_factory = lambda: SocialLinks(
+                deferred_items,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                mode=mode,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         children: list[object] = []
         for item in require_spec_sequence(list(items), SocialLinkSpec, "items"):
@@ -941,7 +1142,7 @@ class SocialLinks(Component):
         super().__init__(Inline(*children, theme=theme, theme_overrides=theme_overrides, gap=theme_map["gap_sm"], wrap=True), **kwargs)
 
 
-class Metric(Component):
+class Metric(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -955,6 +1156,17 @@ class Metric(Component):
         theme_overrides: dict[str, object] | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            self._deferred_factory = lambda: Metric(
+                value,
+                label=label,
+                detail=detail,
+                trend=trend,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         children: list[object] = [
             render_tag(
@@ -994,7 +1206,7 @@ class Metric(Component):
         super().__init__(*[raw(child) for child in children], **kwargs)
 
 
-class ImageGroup(Component):
+class ImageGroup(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -1009,6 +1221,19 @@ class ImageGroup(Component):
         feature_first: bool = False,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            deferred_items = list(items)
+            self._deferred_factory = lambda: ImageGroup(
+                deferred_items,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                columns=columns,
+                gap=gap,
+                masonry=masonry,
+                feature_first=feature_first,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         item_gap = _resolve_gap(theme_map, gap, "image_grid_gap")
         groups: list[list[object]] = [[] for _ in range(max(columns, 1))]
@@ -1026,7 +1251,7 @@ class ImageGroup(Component):
         super().__init__(Columns(*column_nodes, gap=item_gap, widths=[f"{int(100 / len(column_nodes))}%" for _ in column_nodes]), **kwargs)
 
 
-class LogoStrip(Component):
+class LogoStrip(DeferredComponent):
     tag = "div"
 
     def __init__(
@@ -1040,6 +1265,18 @@ class LogoStrip(Component):
         columns: int | None = None,
         **kwargs: object,
     ) -> None:
+        if theme is None:
+            deferred_items = list(items)
+            self._deferred_factory = lambda: LogoStrip(
+                deferred_items,
+                theme=_resolved_theme(theme_overrides),
+                theme_overrides=None,
+                boxed=boxed,
+                outlined=outlined,
+                columns=columns,
+                **_deferred_kwargs(kwargs, theme_overrides),
+            )
+            return
         theme_map = build_theme(theme, theme_overrides)
         nodes: list[object] = []
         for item in require_spec_sequence(items, LogoSpec, "items"):

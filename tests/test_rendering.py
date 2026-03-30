@@ -67,7 +67,6 @@ from pyzahidal import (
 )
 from scripts.generate_docs import _build_curated_component
 
-
 class FakeDataFrame:
     def __init__(self, records):
         self.records = records
@@ -369,6 +368,46 @@ def test_themed_button_uses_theme_tokens():
     html = Button("Buy now", href="#", theme="editorial").render()
     assert f"background:{THEMES['editorial']['primary_color']}" in html
     assert f"border-radius:{THEMES['editorial']['button_radius']}" in html
+
+
+def test_document_theme_inherits_into_plain_primitive_sections():
+    html = EmailDocument(sections=[Button("Buy now", href="#")], theme="editorial").render()
+    assert f"background:{THEMES['editorial']['primary_color']}" in html
+    assert f"border-radius:{THEMES['editorial']['button_radius']}" in html
+
+
+def test_document_theme_inherits_into_nested_composite_sections():
+    html = EmailDocument(
+        sections=[Hero(eyebrow="Launch", title="Title", body="Body", primary_action=ActionSpec("Open", href="#"))],
+        theme="editorial",
+    ).render()
+    assert f"background:{THEMES['editorial']['eyebrow_background']}" in html
+    assert f"color:{THEMES['editorial']['muted_text_color']}" in html
+    assert f"background:{THEMES['editorial']['primary_color']}" in html
+
+
+def test_explicit_child_theme_beats_document_theme():
+    html = EmailDocument(
+        sections=[Button("Buy now", href="#", theme="commerce")],
+        theme="modern",
+    ).render()
+    assert f"background:{THEMES['commerce']['primary_color']}" in html
+    assert f"border-radius:{THEMES['commerce']['button_radius']}" in html
+
+
+def test_child_theme_overrides_apply_on_inherited_document_theme():
+    html = EmailDocument(
+        sections=[Button("Buy now", href="#", theme_overrides={"primary_color": "#123456"})],
+        theme="modern",
+    ).render()
+    assert "background:#123456" in html
+    assert f"border-radius:{THEMES['modern']['button_radius']}" in html
+
+
+def test_standalone_component_without_theme_still_uses_default_theme():
+    html = Button("Buy now", href="#").render()
+    assert f"background:{THEMES['default']['primary_color']}" in html
+    assert f"border-radius:{THEMES['default']['button_radius']}" in html
 
 
 def test_themed_hero_uses_theme_tokens():
