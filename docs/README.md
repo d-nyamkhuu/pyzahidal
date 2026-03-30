@@ -7,8 +7,6 @@ Primary authored inputs:
 - `docs/quickstart.md`
 - `docs/core-concepts.md`
 - `docs/recipes.md`
-- `scripts/generate_docs.py`
-- `scripts/capture_docs_screenshots.py`
 - `docs/stylesheets/docs.css`
 
 Generated outputs:

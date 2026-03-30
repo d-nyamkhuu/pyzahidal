@@ -52,14 +52,6 @@ Go to [Examples](generated/examples.md).
 - curated examples with code, previews, and screenshots
 - theme presets and override examples
 
-## Regenerating docs locally
-
-```bash
-python -m scripts.docs
-```
-
-Use `python -m scripts.docs --no-screenshots` when you only need the Markdown and preview HTML.
-
 ## Maintainer workflows
 
 For GitHub Actions setup, PyPI/TestPyPI secrets, and the exact git tag commands used for releases, see [Publishing](publishing.md).
