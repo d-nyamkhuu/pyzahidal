@@ -1496,54 +1496,143 @@ def _legacy_curated_examples() -> list[CuratedExampleSpec]:
             description="An image-backed hero using nested surfaces instead of raw HTML.",
             code=dedent(
                 """
-                from pyzahidal import Button, Heading, Inline, Stack, Surface, Text
+                from pyzahidal import Button, EmailDocument, Footer, Header, Heading, Inline, MenuItemSpec, SocialLinkSpec, Stack, Surface, Text
 
-                component = Surface(
-                    Surface(
-                        Stack(
-                            Text("Transaction fees as low as 0.89%", size="kicker", tone="inverse", theme="modern"),
-                            Heading("SumUp", level="hero", tone="inverse", theme="modern"),
-                            Text("Powering modern entrepreneurs", tone="inverse", theme="modern"),
-                            Inline(
-                                Button("Discover how", href="#", theme="modern"),
-                                theme="modern",
-                            ),
-                            gap="18px",
+                email = EmailDocument(
+                    title="SumUp launch update",
+                    preview_text="Transaction fees as low as 0.89% for modern entrepreneurs.",
+                    theme="modern",
+                    sections=[
+                        Header(
+                            "SumUp",
+                            [
+                                MenuItemSpec("Products", href="#products"),
+                                MenuItemSpec("Pricing", href="#pricing"),
+                                MenuItemSpec("Docs", href="#docs"),
+                            ],
+                            tagline="Powering modern entrepreneurs",
+                            meta_label="Spring launch",
                             theme="modern",
                         ),
-                        tone="overlay",
-                        padding="44px",
-                        radius="18px",
-                        theme="modern",
-                    ),
-                    background_image="https://images.example.com/sumup-hero.jpg",
-                    background_color="#0f172a",
-                    padding="36px",
-                    radius="24px",
-                    theme="modern",
+                        Surface(
+                            Surface(
+                                Stack(
+                                    Text("Transaction fees as low as 0.89%", size="kicker", tone="inverse"),
+                                    Heading("SumUp", level="hero", tone="inverse"),
+                                    Text("Powering modern entrepreneurs", tone="inverse"),
+                                    Inline(Button("Discover how", href="#")),
+                                    gap="18px",
+                                ),
+                                tone="overlay",
+                                padding="44px",
+                                radius="18px",
+                            ),
+                            background_image="https://images.example.com/sumup-hero.jpg",
+                            background_color="#0f172a",
+                            padding="36px",
+                            radius="24px",
+                        ),
+                        Surface(
+                            Stack(
+                                Text("Why teams switch", size="kicker"),
+                                Heading("Built to launch faster and iterate with less HTML debt.", level="small"),
+                                Text(
+                                    "Compose hero sections, follow-up content, and calls to action in Python while keeping the final output email-client friendly.",
+                                ),
+                                gap="12px",
+                            ),
+                            padding="28px",
+                        ),
+                        Footer(
+                            "SumUp",
+                            [
+                                SocialLinkSpec(label="X", href="#x"),
+                                SocialLinkSpec(label="LinkedIn", href="#linkedin"),
+                                SocialLinkSpec(label="GitHub", href="#github"),
+                            ],
+                            description="Launch faster with reusable email sections, cleaner defaults, and branded flows that still stay easy to iterate.",
+                            menu_items=[
+                                MenuItemSpec("Platform", href="#platform"),
+                                MenuItemSpec("Pricing", href="#pricing"),
+                                MenuItemSpec("Support", href="#support"),
+                            ],
+                            legal_links=[
+                                MenuItemSpec("Privacy", href="#privacy"),
+                                MenuItemSpec("Terms", href="#terms"),
+                            ],
+                            disclaimer="You are receiving this product update because you asked for launch news from SumUp.",
+                            theme="modern",
+                        ),
+                    ],
                 )
                 """
             ),
-            factory=lambda: ui.Surface(
-                ui.Surface(
-                    ui.Stack(
-                        ui.Text("Transaction fees as low as 0.89%", size="kicker", tone="inverse", theme="modern"),
-                        ui.Heading("SumUp", level="hero", tone="inverse", theme="modern"),
-                        ui.Text("Powering modern entrepreneurs", tone="inverse", theme="modern"),
-                        ui.Inline(ui.Button("Discover how", href="#", theme="modern"), theme="modern"),
-                        gap="18px",
+            factory=lambda: ui.EmailDocument(
+                title="SumUp launch update",
+                preview_text="Transaction fees as low as 0.89% for modern entrepreneurs.",
+                theme="modern",
+                sections=[
+                    ui.Header(
+                        "SumUp",
+                        [
+                            ui.MenuItemSpec("Products", href="#products"),
+                            ui.MenuItemSpec("Pricing", href="#pricing"),
+                            ui.MenuItemSpec("Docs", href="#docs"),
+                        ],
+                        tagline="Powering modern entrepreneurs",
+                        meta_label="Spring launch",
                         theme="modern",
                     ),
-                    tone="overlay",
-                    padding="44px",
-                    radius="18px",
-                    theme="modern",
-                ),
-                background_image="https://images.example.com/sumup-hero.jpg",
-                background_color="#0f172a",
-                padding="36px",
-                radius="24px",
-                theme="modern",
+                    ui.Surface(
+                        ui.Surface(
+                            ui.Stack(
+                                ui.Text("Transaction fees as low as 0.89%", size="kicker", tone="inverse"),
+                                ui.Heading("SumUp", level="hero", tone="inverse"),
+                                ui.Text("Powering modern entrepreneurs", tone="inverse"),
+                                ui.Inline(ui.Button("Discover how", href="#")),
+                                gap="18px",
+                            ),
+                            tone="overlay",
+                            padding="44px",
+                            radius="18px",
+                        ),
+                        background_image="https://images.example.com/sumup-hero.jpg",
+                        background_color="#0f172a",
+                        padding="36px",
+                        radius="24px",
+                    ),
+                    ui.Surface(
+                        ui.Stack(
+                            ui.Text("Why teams switch", size="kicker"),
+                            ui.Heading("Built to launch faster and iterate with less HTML debt.", level="small"),
+                            ui.Text(
+                                "Compose hero sections, follow-up content, and calls to action in Python while keeping the final output email-client friendly.",
+                            ),
+                            gap="12px",
+                        ),
+                        padding="28px",
+                    ),
+                    ui.Footer(
+                        "SumUp",
+                        [
+                            ui.SocialLinkSpec(label="X", href="#x"),
+                            ui.SocialLinkSpec(label="LinkedIn", href="#linkedin"),
+                            ui.SocialLinkSpec(label="GitHub", href="#github"),
+                        ],
+                        description="Launch faster with reusable email sections, cleaner defaults, and branded flows that still stay easy to iterate.",
+                        menu_items=[
+                            ui.MenuItemSpec("Platform", href="#platform"),
+                            ui.MenuItemSpec("Pricing", href="#pricing"),
+                            ui.MenuItemSpec("Support", href="#support"),
+                        ],
+                        legal_links=[
+                            ui.MenuItemSpec("Privacy", href="#privacy"),
+                            ui.MenuItemSpec("Terms", href="#terms"),
+                        ],
+                        disclaimer="You are receiving this product update because you asked for launch news from SumUp.",
+                        theme="modern",
+                    ),
+                ],
             ),
             theme="modern",
         ),
@@ -1843,63 +1932,153 @@ def _legacy_curated_examples() -> list[CuratedExampleSpec]:
             description="A two-card editorial layout built from rows, images, and copy blocks.",
             code=dedent(
                 """
-                from pyzahidal import Button, Columns, Heading, Image, Stack, Surface, Text
+                from pyzahidal import Button, Columns, EmailDocument, Footer, Header, Heading, Image, MenuItemSpec, SocialLinkSpec, Stack, Surface, Text
 
-                component = Columns(
-                    Surface(
-                        Stack(
-                            Image("https://images.example.com/post-one.jpg", alt="Post one", theme="editorial"),
-                            Heading("Design systems for email", level="small", theme="editorial"),
-                            Text("How to keep layouts consistent without giving up flexibility.", theme="editorial"),
-                            Button("Read more", href="#", theme="editorial"),
-                            gap="12px",
+                email = EmailDocument(
+                    title="Acme editorial digest",
+                    preview_text="Two stories on email design systems and calmer launch recaps.",
+                    theme="editorial",
+                    sections=[
+                        Header(
+                            "Acme Weekly",
+                            [
+                                MenuItemSpec("Stories", href="#stories"),
+                                MenuItemSpec("Archive", href="#archive"),
+                                MenuItemSpec("About", href="#about"),
+                            ],
+                            tagline="Notes for design, growth, and lifecycle teams",
+                            meta_label="Issue 042",
                             theme="editorial",
                         ),
-                        padding="18px",
-                        theme="editorial",
-                    ),
-                    Surface(
-                        Stack(
-                            Image("https://images.example.com/post-two.jpg", alt="Post two", theme="editorial"),
-                            Heading("Better launch recaps", level="small", theme="editorial"),
-                            Text("A calmer postmortem format for product, growth, and design teams.", theme="editorial"),
-                            Button("Read more", href="#", theme="editorial"),
-                            gap="12px",
+                        Surface(
+                            Stack(
+                                Text("Weekly digest", size="kicker"),
+                                Heading("Notes from the email desk", level="hero"),
+                                Text(
+                                    "A curated readout for design, growth, and lifecycle teams shipping customer communication every week.",
+                                ),
+                                gap="12px",
+                            ),
+                            padding="28px",
+                        ),
+                        Columns(
+                            Surface(
+                                Stack(
+                                    Image("https://images.example.com/post-one.jpg", alt="Post one"),
+                                    Heading("Design systems for email", level="small"),
+                                    Text("How to keep layouts consistent without giving up flexibility."),
+                                    Button("Read more", href="#"),
+                                    gap="12px",
+                                ),
+                                padding="18px",
+                            ),
+                            Surface(
+                                Stack(
+                                    Image("https://images.example.com/post-two.jpg", alt="Post two"),
+                                    Heading("Better launch recaps", level="small"),
+                                    Text("A calmer postmortem format for product, growth, and design teams."),
+                                    Button("Read more", href="#"),
+                                    gap="12px",
+                                ),
+                                padding="18px",
+                            ),
+                            gap="18px",
+                        ),
+                        Footer(
+                            "Acme Weekly",
+                            [
+                                SocialLinkSpec(label="X", href="#x"),
+                                SocialLinkSpec(label="LinkedIn", href="#linkedin"),
+                                SocialLinkSpec(label="RSS", href="#rss"),
+                            ],
+                            description="A calmer editorial digest for teams building email systems, launch recaps, and repeatable communication.",
+                            menu_items=[
+                                MenuItemSpec("Archive", href="#archive"),
+                                MenuItemSpec("Preferences", href="#preferences"),
+                                MenuItemSpec("Advertise", href="#advertise"),
+                            ],
+                            legal_links=[
+                                MenuItemSpec("Unsubscribe", href="#unsubscribe"),
+                                MenuItemSpec("Manage email", href="#manage"),
+                            ],
+                            disclaimer="You are receiving this digest because you subscribed to editorial updates from Acme Weekly.",
                             theme="editorial",
                         ),
-                        padding="18px",
-                        theme="editorial",
-                    ),
-                    gap="18px",
+                    ],
                 )
                 """
             ),
-            factory=lambda: ui.Columns(
-                ui.Surface(
-                    ui.Stack(
-                        ui.Image("https://images.example.com/post-one.jpg", alt="Post one", theme="editorial"),
-                        ui.Heading("Design systems for email", level="small", theme="editorial"),
-                        ui.Text("How to keep layouts consistent without giving up flexibility.", theme="editorial"),
-                        ui.Button("Read more", href="#", theme="editorial"),
-                        gap="12px",
+            factory=lambda: ui.EmailDocument(
+                title="Acme editorial digest",
+                preview_text="Two stories on email design systems and calmer launch recaps.",
+                theme="editorial",
+                sections=[
+                    ui.Header(
+                        "Acme Weekly",
+                        [
+                            ui.MenuItemSpec("Stories", href="#stories"),
+                            ui.MenuItemSpec("Archive", href="#archive"),
+                            ui.MenuItemSpec("About", href="#about"),
+                        ],
+                        tagline="Notes for design, growth, and lifecycle teams",
+                        meta_label="Issue 042",
                         theme="editorial",
                     ),
-                    padding="18px",
-                    theme="editorial",
-                ),
-                ui.Surface(
-                    ui.Stack(
-                        ui.Image("https://images.example.com/post-two.jpg", alt="Post two", theme="editorial"),
-                        ui.Heading("Better launch recaps", level="small", theme="editorial"),
-                        ui.Text("A calmer postmortem format for product, growth, and design teams.", theme="editorial"),
-                        ui.Button("Read more", href="#", theme="editorial"),
-                        gap="12px",
+                    ui.Surface(
+                        ui.Stack(
+                            ui.Text("Weekly digest", size="kicker"),
+                            ui.Heading("Notes from the email desk", level="hero"),
+                            ui.Text(
+                                "A curated readout for design, growth, and lifecycle teams shipping customer communication every week.",
+                            ),
+                            gap="12px",
+                        ),
+                        padding="28px",
+                    ),
+                    ui.Columns(
+                        ui.Surface(
+                            ui.Stack(
+                                ui.Image("https://images.example.com/post-one.jpg", alt="Post one"),
+                                ui.Heading("Design systems for email", level="small"),
+                                ui.Text("How to keep layouts consistent without giving up flexibility."),
+                                ui.Button("Read more", href="#"),
+                                gap="12px",
+                            ),
+                            padding="18px",
+                        ),
+                        ui.Surface(
+                            ui.Stack(
+                                ui.Image("https://images.example.com/post-two.jpg", alt="Post two"),
+                                ui.Heading("Better launch recaps", level="small"),
+                                ui.Text("A calmer postmortem format for product, growth, and design teams."),
+                                ui.Button("Read more", href="#"),
+                                gap="12px",
+                            ),
+                            padding="18px",
+                        ),
+                        gap="18px",
+                    ),
+                    ui.Footer(
+                        "Acme Weekly",
+                        [
+                            ui.SocialLinkSpec(label="X", href="#x"),
+                            ui.SocialLinkSpec(label="LinkedIn", href="#linkedin"),
+                            ui.SocialLinkSpec(label="RSS", href="#rss"),
+                        ],
+                        description="A calmer editorial digest for teams building email systems, launch recaps, and repeatable communication.",
+                        menu_items=[
+                            ui.MenuItemSpec("Archive", href="#archive"),
+                            ui.MenuItemSpec("Preferences", href="#preferences"),
+                            ui.MenuItemSpec("Advertise", href="#advertise"),
+                        ],
+                        legal_links=[
+                            ui.MenuItemSpec("Unsubscribe", href="#unsubscribe"),
+                            ui.MenuItemSpec("Manage email", href="#manage"),
+                        ],
+                        disclaimer="You are receiving this digest because you subscribed to editorial updates from Acme Weekly.",
                         theme="editorial",
                     ),
-                    padding="18px",
-                    theme="editorial",
-                ),
-                gap="18px",
+                ],
             ),
             theme="editorial",
         ),
@@ -2217,16 +2396,128 @@ def _legacy_curated_examples() -> list[CuratedExampleSpec]:
             description="A transactional summary using the reusable order summary section.",
             code=dedent(
                 """
-                from pyzahidal import OrderSummary
+                from pyzahidal import Button, EmailDocument, Footer, Header, Heading, MenuItemSpec, OrderSummary, SocialLinkSpec, Stack, Surface, Text
 
-                component = OrderSummary(
-                    [("Subtotal", "$40"), ("Shipping", "$5"), ("Total", "$45")],
-                    progress=75,
+                email = EmailDocument(
+                    title="Order confirmation",
+                    preview_text="Your order is confirmed and fulfillment is already underway.",
                     theme="commerce",
+                    sections=[
+                        Header(
+                            "Acme Store",
+                            [
+                                MenuItemSpec("Track order", href="#track"),
+                                MenuItemSpec("Support", href="#support"),
+                            ],
+                            tagline="Order #1042",
+                            meta_label="Help center",
+                            theme="commerce",
+                        ),
+                        Surface(
+                            Stack(
+                                Text("Order confirmed", size="kicker"),
+                                Heading("Thanks for shopping with Acme", level="hero"),
+                                Text(
+                                    "We have received your order and started preparing it for shipment. Here is the latest summary before it heads out.",
+                                ),
+                                gap="12px",
+                            ),
+                            padding="28px",
+                        ),
+                        OrderSummary(
+                            [("Subtotal", "$40"), ("Shipping", "$5"), ("Total", "$45")],
+                            progress=75,
+                        ),
+                        Surface(
+                            Stack(
+                                Text("Need anything before it ships?", size="small", tone="muted"),
+                                Button("View order details", href="#"),
+                                gap="12px",
+                            ),
+                            padding="24px",
+                        ),
+                        Footer(
+                            "Acme Store",
+                            [
+                                SocialLinkSpec(label="Support", href="#support"),
+                                SocialLinkSpec(label="Orders", href="#orders"),
+                            ],
+                            description="Need to make a change? Review your order details, delivery updates, and support options in one place.",
+                            menu_items=[
+                                MenuItemSpec("Help center", href="#help"),
+                                MenuItemSpec("Shipping", href="#shipping"),
+                                MenuItemSpec("Returns", href="#returns"),
+                            ],
+                            legal_links=[
+                                MenuItemSpec("Manage order", href="#manage-order"),
+                                MenuItemSpec("Privacy", href="#privacy"),
+                            ],
+                            disclaimer="This transactional email was sent because you placed an order with Acme Store.",
+                            theme="commerce",
+                        ),
+                    ],
                 )
                 """
             ),
-            factory=lambda: ui.OrderSummary([("Subtotal", "$40"), ("Shipping", "$5"), ("Total", "$45")], progress=75, theme="commerce"),
+            factory=lambda: ui.EmailDocument(
+                title="Order confirmation",
+                preview_text="Your order is confirmed and fulfillment is already underway.",
+                theme="commerce",
+                sections=[
+                    ui.Header(
+                        "Acme Store",
+                        [
+                            ui.MenuItemSpec("Track order", href="#track"),
+                            ui.MenuItemSpec("Support", href="#support"),
+                        ],
+                        tagline="Order #1042",
+                        meta_label="Help center",
+                        theme="commerce",
+                    ),
+                    ui.Surface(
+                        ui.Stack(
+                            ui.Text("Order confirmed", size="kicker"),
+                            ui.Heading("Thanks for shopping with Acme", level="hero"),
+                            ui.Text(
+                                "We have received your order and started preparing it for shipment. Here is the latest summary before it heads out.",
+                            ),
+                            gap="12px",
+                        ),
+                        padding="28px",
+                    ),
+                    ui.OrderSummary(
+                        [("Subtotal", "$40"), ("Shipping", "$5"), ("Total", "$45")],
+                        progress=75,
+                    ),
+                    ui.Surface(
+                        ui.Stack(
+                            ui.Text("Need anything before it ships?", size="small", tone="muted"),
+                            ui.Button("View order details", href="#"),
+                            gap="12px",
+                        ),
+                        padding="24px",
+                    ),
+                    ui.Footer(
+                        "Acme Store",
+                        [
+                            ui.SocialLinkSpec(label="Support", href="#support"),
+                            ui.SocialLinkSpec(label="Orders", href="#orders"),
+                        ],
+                        description="Need to make a change? Review your order details, delivery updates, and support options in one place.",
+                        menu_items=[
+                            ui.MenuItemSpec("Help center", href="#help"),
+                            ui.MenuItemSpec("Shipping", href="#shipping"),
+                            ui.MenuItemSpec("Returns", href="#returns"),
+                        ],
+                        legal_links=[
+                            ui.MenuItemSpec("Manage order", href="#manage-order"),
+                            ui.MenuItemSpec("Privacy", href="#privacy"),
+                        ],
+                        disclaimer="This transactional email was sent because you placed an order with Acme Store.",
+                        theme="commerce",
+                    ),
+                ],
+            ),
             theme="commerce",
         ),
         spec(
@@ -5194,10 +5485,6 @@ def build_components_page(entries: list[dict[str, object]]) -> str:
                     "",
                     iframe(preview_html, entry["example_path"], f"{name} preview", example_height(name), page_depth=2),
                     "",
-                    "Screenshot:",
-                    "",
-                    screenshot_markup(entry["screenshot_path"], f"{name} screenshot", page_depth=2),
-                    "",
                 ]
             )
     return "\n".join(lines).strip() + "\n"
@@ -5252,10 +5539,6 @@ def build_templates_page(entries: list[dict[str, object]]) -> str:
                 "",
                 iframe(preview_html, entry["example_path"], f"{name} preview", example_height(name), page_depth=2),
                 "",
-                "Screenshot:",
-                "",
-                screenshot_markup(entry["screenshot_path"], f"{name} screenshot", page_depth=2),
-                "",
             ]
         )
     return "\n".join(lines).strip() + "\n"
@@ -5289,7 +5572,6 @@ def build_themes_page(entries: list[dict[str, object]]) -> str:
         for theme_name in ("default", "editorial", "vibrant"):
             slug = f"theme-{component_name.lower()}-{theme_name}"
             example_path = f"assets/examples/{slug}.html"
-            screenshot_path = f"assets/screenshots/{slug}.png"
             component = THEME_SHOWCASES[component_name](theme_name)
             preview_html = render_component_preview(
                 component,
@@ -5302,8 +5584,6 @@ def build_themes_page(entries: list[dict[str, object]]) -> str:
                     f"#### `{theme_name}`",
                     "",
                     iframe(preview_html, example_path, f"{component_name} {theme_name}", example_height(component_name), page_depth=2),
-                    "",
-                    screenshot_markup(screenshot_path, f"{component_name} {theme_name} screenshot", page_depth=2),
                     "",
                 ]
             )
@@ -5390,10 +5670,6 @@ def build_examples_page(specs: list[CuratedExampleSpec]) -> str:
                     "",
                     iframe(preview_html, curated_showcase_path(spec.slug), f"{spec.title} preview", 940, page_depth=2),
                     "",
-                    "Screenshot:",
-                    "",
-                    screenshot_markup(spec.screenshot_path, f"{spec.title} screenshot", page_depth=2),
-                    "",
                 ]
             )
     return "\n".join(lines).strip() + "\n"
@@ -5452,7 +5728,6 @@ def build_index_page(entries: list[dict[str, object]]) -> str:
             "## Notes",
             "",
             "- Live previews are generated from real component constructors.",
-            "- Screenshot blocks appear automatically once `scripts/capture_docs_screenshots.py` has been run.",
             "- The generated pages under `docs/generated/` should be treated as build artifacts from the source scripts.",
             "",
         ]

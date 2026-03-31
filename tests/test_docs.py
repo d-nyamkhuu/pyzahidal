@@ -4,6 +4,7 @@ import json
 import re
 import subprocess
 import sys
+import types
 from pathlib import Path
 from unittest import mock
 
@@ -17,7 +18,15 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 import pyzahidal
-from scripts.capture_docs_screenshots import build_curated_visual_report
+from scripts.capture_docs_screenshots import (
+    README_SCREENSHOT_SPECS,
+    VIEWPORT,
+    build_curated_visual_report,
+    capture_screenshots,
+    capture_tight_screenshot,
+    readme_screenshot_targets,
+    _visible_bounds_clip,
+)
 from scripts import docs as docs_cli
 from scripts.generate_docs import (
     ALIASES,
@@ -98,7 +107,8 @@ def test_components_page_contains_signature_code_and_preview(tmp_path: Path):
     assert "```python" in page
     assert '<iframe class="docs-preview-frame" src="../../assets/examples/' in page
     assert 'srcdoc="&lt;!doctype html&gt;' in page
-    assert "Screenshot:" in page
+    assert "Screenshot:" not in page
+    assert "Screenshot asset not generated yet." not in page
 
 
 def test_theme_showcase_assets_are_generated(tmp_path: Path):
@@ -144,10 +154,13 @@ def test_generated_docs_examples_use_explicit_code_no_placeholders(tmp_path: Pat
     components_page = (tmp_path / "generated" / "components.md").read_text(encoding="utf-8")
     templates_page = (tmp_path / "generated" / "templates.md").read_text(encoding="utf-8")
     examples_page = (tmp_path / "generated" / "examples.md").read_text(encoding="utf-8")
+    themes_page = (tmp_path / "generated" / "themes.md").read_text(encoding="utf-8")
 
-    for page in (components_page, templates_page, examples_page):
+    for page in (components_page, templates_page, examples_page, themes_page):
         assert "data:image/svg+xml;utf8,..." not in page
         assert not re.search(r"\b(component|doc)\s*=\s*[A-Za-z_]+\(\s*\.\.\.", page)
+        assert "Screenshot:" not in page
+        assert "Screenshot asset not generated yet." not in page
 
 
 def test_curated_logos_example_code_matches_rendered_logo_strip(tmp_path: Path):
@@ -168,6 +181,12 @@ def test_generated_docs_examples_do_not_reference_local_curated_asset_paths(tmp_
     for page in (components_page, templates_page, examples_page):
         assert "assets/curated-images/" not in page
         assert "../curated-images/" not in page
+
+
+def test_themes_page_omits_screenshot_notes(tmp_path: Path):
+    generate(tmp_path)
+    themes_page = (tmp_path / "generated" / "themes.md").read_text(encoding="utf-8")
+    assert "Screenshot blocks appear automatically" not in themes_page
 
 
 def test_curated_examples_page_avoids_generic_fallback_snippets(tmp_path: Path):
@@ -271,6 +290,113 @@ def test_curated_visual_report_uses_generated_screenshots(tmp_path: Path):
     assert report["summary"]["failing_examples"] == 0
     assert not report["failing"]
     assert report["entries"][0]["generated_screenshot_path"].startswith("assets/screenshots/")
+
+
+def test_readme_screenshot_targets_point_to_curated_examples(tmp_path: Path):
+    generate(tmp_path)
+    targets = readme_screenshot_targets(tmp_path)
+
+    assert [path.name for _, path in targets] == [filename for _, filename in README_SCREENSHOT_SPECS]
+    for preview_path, screenshot_path in targets:
+        assert preview_path.exists()
+        assert preview_path.name.startswith("curated-")
+        assert screenshot_path.parent == tmp_path.parent / ".github" / "readme"
+
+
+def test_visible_bounds_clip_ignores_hidden_nodes():
+    clip = _visible_bounds_clip(
+        [
+            {"visible": False, "left": 10, "top": 10, "right": 120, "bottom": 40},
+            {"visible": True, "left": 20, "top": 30, "right": 200, "bottom": 180},
+        ]
+    )
+
+    assert clip == {
+        "x": 8.0,
+        "y": 18.0,
+        "width": 204.0,
+        "height": 174.0,
+    }
+
+
+def test_visible_bounds_clip_applies_margin_and_clamps_to_origin():
+    clip = _visible_bounds_clip(
+        [
+            {"visible": True, "left": 6, "top": 7, "right": 45, "bottom": 70},
+            {"visible": True, "left": 40, "top": 55, "right": 100, "bottom": 125},
+        ]
+    )
+
+    assert clip == {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 112.0,
+        "height": 137.0,
+    }
+
+
+def test_visible_bounds_clip_falls_back_to_viewport_when_nothing_visible():
+    assert _visible_bounds_clip([{"visible": False, "left": None, "top": None, "right": None, "bottom": None}]) == {
+        "x": 0.0,
+        "y": 0.0,
+        "width": float(VIEWPORT["width"]),
+        "height": float(VIEWPORT["height"]),
+    }
+
+
+def test_capture_tight_screenshot_uses_clip():
+    page = mock.Mock()
+    page.evaluate.return_value = [
+        {"visible": True, "left": 20, "top": 30, "right": 200, "bottom": 180},
+        {"visible": False, "left": None, "top": None, "right": None, "bottom": None},
+    ]
+    destination = Path("/tmp/sample.png")
+
+    capture_tight_screenshot(page, destination)
+
+    page.screenshot.assert_called_once_with(
+        path=str(destination),
+        clip={
+            "x": 8.0,
+            "y": 18.0,
+            "width": 204.0,
+            "height": 174.0,
+        },
+    )
+    screenshot_kwargs = page.screenshot.call_args.kwargs
+    assert "full_page" not in screenshot_kwargs
+
+
+def test_capture_screenshots_routes_all_calls_through_shared_helper(tmp_path: Path):
+    generate(tmp_path)
+    inventory = json.loads((tmp_path / "generated" / "api-inventory.json").read_text(encoding="utf-8"))
+    expected_count = len(inventory) + 12 + len(README_SCREENSHOT_SPECS)
+
+    page = mock.Mock()
+    browser = mock.Mock()
+    browser.new_page.return_value = page
+    chromium = mock.Mock()
+    chromium.launch.return_value = browser
+
+    class _PlaywrightContext:
+        def __enter__(self):
+            return types.SimpleNamespace(chromium=chromium)
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    with (
+        mock.patch.dict(sys.modules, {"playwright.sync_api": types.SimpleNamespace(sync_playwright=lambda: _PlaywrightContext())}),
+        mock.patch("scripts.capture_docs_screenshots.capture_tight_screenshot") as capture_mock,
+    ):
+        report = capture_screenshots(tmp_path)
+
+    assert report["summary"]["total_examples"] == 32
+    browser.new_page.assert_called_once_with(viewport=VIEWPORT, device_scale_factor=1)
+    assert page.goto.call_count == expected_count
+    assert capture_mock.call_count == expected_count
+    assert not page.screenshot.called
+    browser.close.assert_called_once()
 
 
 def test_curated_examples_are_defined_statically():
